@@ -4,6 +4,7 @@ provider "aws" {
   region     = "us-east-1"
 }
 
+# VPC
 resource "aws_vpc" "oversecured_vpc" {
   cidr_block = "172.16.0.0/16"
 
@@ -12,6 +13,7 @@ resource "aws_vpc" "oversecured_vpc" {
   }
 }
 
+# Subnet
 resource "aws_subnet" "oversecured_subnet" {
   vpc_id                  = aws_vpc.oversecured_vpc.id
   cidr_block              = "172.16.10.0/24"
@@ -23,6 +25,7 @@ resource "aws_subnet" "oversecured_subnet" {
   }
 }
 
+# Internet gateway
 resource "aws_internet_gateway" "oversecured_gw" {
   vpc_id = aws_vpc.oversecured_vpc.id
 
@@ -31,6 +34,7 @@ resource "aws_internet_gateway" "oversecured_gw" {
   }
 }
 
+# Route table
 resource "aws_route_table" "oversecured_public_rtb" {
   vpc_id = aws_vpc.oversecured_vpc.id
   route {
@@ -42,11 +46,13 @@ resource "aws_route_table" "oversecured_public_rtb" {
   }
 }
 
+# Route table association
 resource "aws_route_table_association" "oversecured_crta_public_subnet" {
   subnet_id      = aws_subnet.oversecured_subnet.id
   route_table_id = aws_route_table.oversecured_public_rtb.id
 }
 
+# Security group
 resource "aws_security_group" "oversecured_security_group" {
   vpc_id = aws_vpc.oversecured_vpc.id
   egress {
@@ -69,11 +75,13 @@ resource "aws_security_group" "oversecured_security_group" {
   }
 }
 
+# Key pair
 resource "aws_key_pair" "aws-key" {
   key_name   = "aws-key"
   public_key = file(var.PUBLIC_KEY_PATH)
 }
 
+# EC2
 resource "aws_instance" "oversecured_test_vm" {
   ami           = "ami-053b0d53c279acc90"
   instance_type = "t2.micro"
@@ -82,6 +90,20 @@ resource "aws_instance" "oversecured_test_vm" {
   vpc_security_group_ids = ["${aws_security_group.oversecured_security_group.id}"]
   key_name               = aws_key_pair.aws-key.id
   user_data              = file("userdata.tpl")
+}
+
+# Route53
+data "aws_route53_zone" "hosted_zone" {
+  name         = "oversecured.pp.ua"
+}
+
+# Record
+resource "aws_route53_record" "a_record" {
+  zone_id = data.aws_route53_zone.hosted_zone.id
+  name    = data.aws_route53_zone.hosted_zone.name
+  type    = "A"
+  ttl     = "300"
+  records = "${aws_instance.oversecured_test_vm.*.public_ip}"
 }
 
 output "ec2_global_ips" {
