@@ -1,6 +1,6 @@
 provider "aws" {
-  access_key = var.ACCESS_KEY
-  secret_key = var.SECRET_KEY
+  # access_key = var.ACCESS_KEY
+  # secret_key = var.SECRET_KEY
   region     = "us-east-1"
 }
 
@@ -47,10 +47,8 @@ resource "aws_route_table_association" "oversecured_crta_public_subnet" {
   route_table_id = aws_route_table.oversecured_public_rtb.id
 }
 
-====== continue ========
-
-resource "aws_security_group" "ssh-allowed" {
-  vpc_id = aws_vpc.it_craft.id
+resource "aws_security_group" "oversecured_security_group" {
+  vpc_id = aws_vpc.oversecured_vpc.id
   egress {
     from_port   = 0
     to_port     = 0
@@ -76,16 +74,16 @@ resource "aws_key_pair" "aws-key" {
   public_key = file(var.PUBLIC_KEY_PATH)
 }
 
-resource "aws_instance" "nginx_server" {
-  ami           = "ami-0574da719dca65348"
-  instance_type = "t3.micro"
+resource "aws_instance" "oversecured_test_vm" {
+  ami           = "ami-053b0d53c279acc90"
+  instance_type = "t2.micro"
 
-  subnet_id              = aws_subnet.test_subnet.id
-  vpc_security_group_ids = ["${aws_security_group.ssh-allowed.id}"]
+  subnet_id              = aws_subnet.oversecured_subnet.id
+  vpc_security_group_ids = ["${aws_security_group.oversecured_security_group.id}"]
   key_name               = aws_key_pair.aws-key.id
   user_data              = file("userdata.tpl")
 }
 
 output "ec2_global_ips" {
-  value = ["${aws_instance.nginx_server.*.public_ip}"]
+  value = ["${aws_instance.oversecured_test_vm.*.public_ip}"]
 }
