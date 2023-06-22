@@ -3,7 +3,8 @@ server {
         listen 80 default_server;
         listen [::]:80 default_server;
 
-        root /var/www/html;
+
+        root /var/www/html/oversecured;
 
         # Add index.php to the list if you are using PHP
         index index.html index.htm index.nginx-debian.html;
@@ -11,10 +12,8 @@ server {
         server_name _;
 
         location / {
-                return 301 https://$host/oversecured/$request_uri;
                 # First attempt to serve request as file, then
                 # as directory, then fall back to displaying a 404.
                 try_files $uri $uri/ =404;
         }
 }
-

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Uncoment for https
+
 # Install app
 sudo apt update
 sudo apt install -y nginx
