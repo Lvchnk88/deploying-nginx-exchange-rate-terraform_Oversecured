@@ -1,0 +1,32 @@
+server {
+
+        root /var/www/html/;
+
+        server_name _;
+
+        location / {
+                try_files $uri $uri/ =404;
+        }
+
+    listen [::]:443 ssl ipv6only=on;
+    listen 443 ssl;
+    ssl_certificate /etc/letsencrypt/live/oversecured.pp.ua/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/oversecured.pp.ua/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
+
+
+server {
+    if ($host = oversecured.pp.ua) {
+        return 301 https://$host/oversecured/$request_uri;
+    }
+
+        listen 80 default_server;
+        listen [::]:80 default_server;
+        server_name oversecured.pp.ua;
+
+
+        server_name _;
+    return 404;
+}

@@ -1,12 +1,13 @@
 provider "aws" {
   # access_key = var.ACCESS_KEY
   # secret_key = var.SECRET_KEY
-  region     = "us-east-1"
+  region = "us-east-1"
 }
 
 # VPC
 resource "aws_vpc" "oversecured_vpc" {
   cidr_block = "172.16.0.0/16"
+  enable_dns_hostnames = true
 
   tags = {
     Name = "tf-oversecured-vpc"
@@ -73,6 +74,15 @@ resource "aws_security_group" "oversecured_security_group" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "tf-oversecured_security_group"
+  }
 }
 
 
@@ -91,6 +101,9 @@ resource "aws_instance" "oversecured_test_vm" {
   vpc_security_group_ids = ["${aws_security_group.oversecured_security_group.id}"]
   key_name               = aws_key_pair.aws-key.id
   user_data              = file("userdata.tpl")
+  tags = {
+    Name = "tf-oversecured-test-vm"
+  }
 }
 
 # Public IP
@@ -100,67 +113,68 @@ output "ec2_global_ips" {
 
 
 # Route53
-data "aws_route53_zone" "hosted_zone" {
-  name         = "oversecured.pp.ua"
+resource "aws_route53_zone" "hosted_zone" {
+  name = "tf-oversecured.pp.ua" # Domain not exist (ned to add Server Names to the domain provider)
 }
 
 # Add A record
 resource "aws_route53_record" "a_record" {
-  zone_id = data.aws_route53_zone.hosted_zone.id
-  name    = data.aws_route53_zone.hosted_zone.name
+  zone_id = aws_route53_zone.hosted_zone.id
+  name    = aws_route53_zone.hosted_zone.name
   type    = "A"
   ttl     = "300"
-  records = "${aws_instance.oversecured_test_vm.*.public_ip}"
+  records = aws_instance.oversecured_test_vm.*.public_ip
 }
 
 
-
-# User add
+# Create IAM user add
 resource "aws_iam_user" "oversecured_user" {
-  name = "User_for_Oversecured"
+  name          = "tf_User_for_Oversecured"
+  force_destroy = true
+}
+
+resource "aws_iam_user_login_profile" "oversecured_user" {
+  user    = aws_iam_user.oversecured_user.name
 }
 
 # Create access key
-resource "aws_iam_access_key" "oversecured_user" {
-  user = aws_iam_user.oversecured_user.name
-}
+# resource "aws_iam_access_key" "oversecured_user" {
+#   user = aws_iam_user.oversecured_user.name
+# }
 
 
 # Output creds
 output "login" {
-  value = aws_iam_user.oversecured_user.name
-  sensitive = true
+  value     = aws_iam_user.oversecured_user.name
 }
 
 output "password" {
-  value = aws_iam_access_key.oversecured_user.secret
-  sensitive = true
+  value     = aws_iam_user_login_profile.oversecured_user.password
 }
 
-output "secret_access_key" {
-  value = aws_iam_access_key.oversecured_user.id
-  sensitive = true
-}
+# output "secret_access_key" {
+#   value     = aws_iam_access_key.oversecured_user.id
+# }
 
 
 # Create group
 resource "aws_iam_group" "oversecured_group" {
-  name = "Guests"
+  name = "tf-Guests"
 }
 
-# Add users
-resource "aws_iam_user_group_membership" "add_user"{
-  user   = aws_iam_user.oversecured_user.name
+# Add users to group
+resource "aws_iam_user_group_membership" "add_user" {
+  user = aws_iam_user.oversecured_user.name
   groups = [
     aws_iam_group.oversecured_group.name
-  ]  
+  ]
 }
 
 # Custom policy
 resource "aws_iam_policy" "oversecured_policy" {
-  name        = "SG_Edit_permission"
-  description = "Provide ability to add sg to ec2"
-  policy = <<EOT
+  name        = "tf_SG_Edit_permission"
+  description = "Created with Terraform Provide ability to add sg to ec2"
+  policy      = <<EOT
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -207,7 +221,7 @@ resource "aws_iam_policy" "oversecured_policy" {
 EOT
 }
 
-# Custom olicy attachment
+# Custom policy attachment
 resource "aws_iam_group_policy_attachment" "custom_policy_attach" {
   group      = aws_iam_group.oversecured_group.name
   policy_arn = aws_iam_policy.oversecured_policy.arn
