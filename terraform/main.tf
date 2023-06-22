@@ -75,6 +75,7 @@ resource "aws_security_group" "oversecured_security_group" {
   }
 }
 
+
 # Key pair
 resource "aws_key_pair" "aws-key" {
   key_name   = "aws-key"
@@ -92,12 +93,18 @@ resource "aws_instance" "oversecured_test_vm" {
   user_data              = file("userdata.tpl")
 }
 
+# Public IP
+output "ec2_global_ips" {
+  value = ["${aws_instance.oversecured_test_vm.*.public_ip}"]
+}
+
+
 # Route53
 data "aws_route53_zone" "hosted_zone" {
   name         = "oversecured.pp.ua"
 }
 
-# Record
+# Add A record
 resource "aws_route53_record" "a_record" {
   zone_id = data.aws_route53_zone.hosted_zone.id
   name    = data.aws_route53_zone.hosted_zone.name
@@ -106,6 +113,107 @@ resource "aws_route53_record" "a_record" {
   records = "${aws_instance.oversecured_test_vm.*.public_ip}"
 }
 
-output "ec2_global_ips" {
-  value = ["${aws_instance.oversecured_test_vm.*.public_ip}"]
+
+
+# User add
+resource "aws_iam_user" "oversecured_user" {
+  name = "User_for_Oversecured"
+}
+
+# Create access key
+resource "aws_iam_access_key" "oversecured_user" {
+  user = aws_iam_user.oversecured_user.name
+}
+
+
+# Output creds
+output "login" {
+  value = aws_iam_user.oversecured_user.name
+  sensitive = true
+}
+
+output "password" {
+  value = aws_iam_access_key.oversecured_user.secret
+  sensitive = true
+}
+
+output "secret_access_key" {
+  value = aws_iam_access_key.oversecured_user.id
+  sensitive = true
+}
+
+
+# Create group
+resource "aws_iam_group" "oversecured_group" {
+  name = "Guests"
+}
+
+# Add users
+resource "aws_iam_user_group_membership" "add_user"{
+  user   = aws_iam_user.oversecured_user.name
+  groups = [
+    aws_iam_group.oversecured_group.name
+  ]  
+}
+
+# Custom policy
+resource "aws_iam_policy" "oversecured_policy" {
+  name        = "SG_Edit_permission"
+  description = "Provide ability to add sg to ec2"
+  policy = <<EOT
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeSecurityGroupRules",
+                "ec2:DescribeTags"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:RevokeSecurityGroupIngress",
+                "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:RevokeSecurityGroupEgress",
+                "ec2:ModifySecurityGroupRules",
+                "ec2:UpdateSecurityGroupRuleDescriptionsIngress",
+                "ec2:UpdateSecurityGroupRuleDescriptionsEgress"
+            ],
+            "Resource": [
+                "arn:aws:ec2:us-east-1:148273267728:security-group/*"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceTag/Department": "Test"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:ModifySecurityGroupRules"
+            ],
+            "Resource": [
+                "arn:aws:ec2:us-east-1:148273267728:security-group-rule/*"
+            ]
+        }
+    ]
+}
+EOT
+}
+
+# Custom olicy attachment
+resource "aws_iam_group_policy_attachment" "custom_policy_attach" {
+  group      = aws_iam_group.oversecured_group.name
+  policy_arn = aws_iam_policy.oversecured_policy.arn
+}
+
+resource "aws_iam_group_policy_attachment" "managet_policy_attach" {
+  group      = aws_iam_group.oversecured_group.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
 }
