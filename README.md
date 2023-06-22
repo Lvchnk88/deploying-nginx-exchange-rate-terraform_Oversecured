@@ -1,7 +1,6 @@
-
-```dm
 Test Task for Oversecured
-========================
+-------------------------
+
 
 Clone repository
 ----------------
@@ -16,7 +15,7 @@ Terraform Deployment
 
 1. Run Terraform commands to deploy the infrastructure:
 
-```shell
+```
 $ terraform plan
 $ terraform apply
 ```
@@ -46,4 +45,3 @@ License
 -------
 
 This project is licensed under the [MIT License](LICENSE).
-```
