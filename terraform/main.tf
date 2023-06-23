@@ -133,7 +133,7 @@ resource "aws_route53_record" "a_record" {
 
 # Create IAM user add
 resource "aws_iam_user" "oversecured_user" {
-  name          = "tf_User_for_Oversecured"
+  name          = var.user
   force_destroy = true
 }
 
@@ -148,7 +148,7 @@ resource "aws_iam_user_login_profile" "oversecured_user" {
 
 # Create group
 resource "aws_iam_group" "oversecured_group" {
-  name = "tf-Guests"
+  name = var.group
 }
 
 # Add users to group
@@ -163,51 +163,7 @@ resource "aws_iam_user_group_membership" "add_user" {
 resource "aws_iam_policy" "oversecured_policy" {
   name        = "tf_SG_Edit_permission"
   description = "Created with Terraform Provide ability to add sg to ec2"
-  policy      = <<EOT
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "ec2:DescribeSecurityGroups",
-                "ec2:DescribeSecurityGroupRules",
-                "ec2:DescribeTags"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "ec2:AuthorizeSecurityGroupIngress",
-                "ec2:RevokeSecurityGroupIngress",
-                "ec2:AuthorizeSecurityGroupEgress",
-                "ec2:RevokeSecurityGroupEgress",
-                "ec2:ModifySecurityGroupRules",
-                "ec2:UpdateSecurityGroupRuleDescriptionsIngress",
-                "ec2:UpdateSecurityGroupRuleDescriptionsEgress"
-            ],
-            "Resource": [
-                "arn:aws:ec2:us-east-1:148273267728:security-group/*"
-            ],
-            "Condition": {
-                "StringEquals": {
-                    "aws:ResourceTag/Department": "Test"
-                }
-            }
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "ec2:ModifySecurityGroupRules"
-            ],
-            "Resource": [
-                "arn:aws:ec2:us-east-1:148273267728:security-group-rule/*"
-            ]
-        }
-    ]
-}
-EOT
+  policy      = var.custom_policy
 }
 
 # Custom policy attachment
@@ -218,5 +174,5 @@ resource "aws_iam_group_policy_attachment" "custom_policy_attach" {
 
 resource "aws_iam_group_policy_attachment" "managet_policy_attach" {
   group      = aws_iam_group.oversecured_group.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
+  policy_arn = var.managet_policy
 }
