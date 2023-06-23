@@ -2,7 +2,7 @@ provider "aws" {
   # access_key = var.ACCESS_KEY
   # secret_key = var.SECRET_KEY
   profile = "default"
-  region = var.region
+  region  = var.region
 
   default_tags {
     tags = {
@@ -220,25 +220,3 @@ resource "aws_iam_group_policy_attachment" "managet_policy_attach" {
   group      = aws_iam_group.oversecured_group.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
 }
-
-
-### OUTPUTS
-# Public IP
-output "ec2_global_ips" {
-  value = ["${aws_instance.oversecured_test_vm.*.public_ip}"]
-}
-
-# Creds
-output "login" {
-  value     = aws_iam_user.oversecured_user.name
-}
-
-# Password
-output "password" {
-  value     = aws_iam_user_login_profile.oversecured_user.password
-}
-
-# Access key
-# output "secret_access_key" {
-#   value     = aws_iam_access_key.oversecured_user.id
-# }
