@@ -15,7 +15,7 @@ provider "aws" {
 
 # VPC
 resource "aws_vpc" "oversecured_vpc" {
-  cidr_block = var.cidr_vpc
+  cidr_block           = var.cidr_vpc
   enable_dns_hostnames = true
 
   tags = {
@@ -65,30 +65,24 @@ resource "aws_route_table_association" "oversecured_crta_public_subnet" {
 # Security group
 resource "aws_security_group" "oversecured_security_group" {
   vpc_id = aws_vpc.oversecured_vpc.id
+
+  dynamic "ingress" {
+    for_each = var.allow_ports
+    content {
+      from_port   = ingress.value
+      to_port     = ingress.value
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = -1
     cidr_blocks = ["0.0.0.0/0"]
   }
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+
   tags = {
     Name = "tf-oversecured_security_group"
   }
@@ -118,7 +112,7 @@ resource "aws_instance" "oversecured_test_vm" {
 
 # Route53
 resource "aws_route53_zone" "hosted_zone" {
-  name = "tf-oversecured.pp.ua" # Domain not exist (ned to add Server Names to the domain provider)
+  name = var.hosted_zone
 }
 
 # Add A record
@@ -138,7 +132,7 @@ resource "aws_iam_user" "oversecured_user" {
 }
 
 resource "aws_iam_user_login_profile" "oversecured_user" {
-  user    = aws_iam_user.oversecured_user.name
+  user = aws_iam_user.oversecured_user.name
 }
 
 # Create access key

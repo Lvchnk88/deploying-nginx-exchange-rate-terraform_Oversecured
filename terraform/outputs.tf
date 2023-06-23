@@ -6,12 +6,12 @@ output "ec2_global_ips" {
 
 ### Creds
 output "login" {
-  value     = aws_iam_user.oversecured_user.name
+  value = aws_iam_user.oversecured_user.name
 }
 
 # Password
 output "password" {
-  value     = aws_iam_user_login_profile.oversecured_user.password
+  value = aws_iam_user_login_profile.oversecured_user.password
 }
 
 # Access key

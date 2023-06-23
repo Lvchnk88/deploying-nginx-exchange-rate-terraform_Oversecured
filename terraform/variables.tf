@@ -1,12 +1,8 @@
-variable "PRIVATE_KEY_PATH" {
-  default = "~/.ssh/SERGII_LEVCHENKO_PRIVARE_KEY_RSA"
-}
+
 variable "PUBLIC_KEY_PATH" {
   default = "~/.ssh/SERGII_LEVCHENKO_PRIVARE_KEY_RSA.pub"
 }
-variable "EC2_USER" {
-  default = "ubuntu"
-}
+
 # variable "ACCESS_KEY" {
 #   default = "  Your key  "
 # }
@@ -31,6 +27,14 @@ variable "availability_zone" {
 }
 
 variable "instance_type" {
- default = "t2.micro"
- description = "EC2 instance type"
+  default     = "t2.micro"
+  description = "EC2 instance type"
+}
+
+variable "hosted_zone" {
+  default = "tf-oversecured.pp.ua"
+}
+
+variable "allow_ports" {
+  default = ["80", "443", "22"]
 }
