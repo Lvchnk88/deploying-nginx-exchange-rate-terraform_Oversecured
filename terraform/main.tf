@@ -1,12 +1,21 @@
 provider "aws" {
   # access_key = var.ACCESS_KEY
   # secret_key = var.SECRET_KEY
-  region = "us-east-1"
+  profile = "default"
+  region = var.region
+
+  default_tags {
+    tags = {
+      Envrinment = "test_task"
+      Service    = "exchange rate"
+      Client     = "oversecured"
+    }
+  }
 }
 
 # VPC
 resource "aws_vpc" "oversecured_vpc" {
-  cidr_block = "172.16.0.0/16"
+  cidr_block = var.cidr_vpc
   enable_dns_hostnames = true
 
   tags = {
@@ -17,9 +26,9 @@ resource "aws_vpc" "oversecured_vpc" {
 # Subnet
 resource "aws_subnet" "oversecured_subnet" {
   vpc_id                  = aws_vpc.oversecured_vpc.id
-  cidr_block              = "172.16.10.0/24"
+  cidr_block              = var.cidr_subnet
   map_public_ip_on_launch = "true"
-  availability_zone       = "us-east-1b"
+  availability_zone       = var.availability_zone
 
   tags = {
     Name = "tf-oversecured-subnet"
@@ -94,8 +103,8 @@ resource "aws_key_pair" "aws-key" {
 
 # EC2
 resource "aws_instance" "oversecured_test_vm" {
-  ami           = "ami-053b0d53c279acc90"
-  instance_type = "t2.micro"
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.instance_type
 
   subnet_id              = aws_subnet.oversecured_subnet.id
   vpc_security_group_ids = ["${aws_security_group.oversecured_security_group.id}"]
@@ -104,11 +113,6 @@ resource "aws_instance" "oversecured_test_vm" {
   tags = {
     Name = "tf-oversecured-test-vm"
   }
-}
-
-# Public IP
-output "ec2_global_ips" {
-  value = ["${aws_instance.oversecured_test_vm.*.public_ip}"]
 }
 
 
@@ -141,21 +145,6 @@ resource "aws_iam_user_login_profile" "oversecured_user" {
 # resource "aws_iam_access_key" "oversecured_user" {
 #   user = aws_iam_user.oversecured_user.name
 # }
-
-
-# Output creds
-output "login" {
-  value     = aws_iam_user.oversecured_user.name
-}
-
-output "password" {
-  value     = aws_iam_user_login_profile.oversecured_user.password
-}
-
-# output "secret_access_key" {
-#   value     = aws_iam_access_key.oversecured_user.id
-# }
-
 
 # Create group
 resource "aws_iam_group" "oversecured_group" {
@@ -231,3 +220,25 @@ resource "aws_iam_group_policy_attachment" "managet_policy_attach" {
   group      = aws_iam_group.oversecured_group.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
 }
+
+
+### OUTPUTS
+# Public IP
+output "ec2_global_ips" {
+  value = ["${aws_instance.oversecured_test_vm.*.public_ip}"]
+}
+
+# Creds
+output "login" {
+  value     = aws_iam_user.oversecured_user.name
+}
+
+# Password
+output "password" {
+  value     = aws_iam_user_login_profile.oversecured_user.password
+}
+
+# Access key
+# output "secret_access_key" {
+#   value     = aws_iam_access_key.oversecured_user.id
+# }
