@@ -16,6 +16,8 @@ Terraform Deployment
 1. Run Terraform commands to deploy the infrastructure:
 
 ```
+$ cd terraform
+$ terrafirm init
 $ terraform plan
 $ terraform apply
 ```
