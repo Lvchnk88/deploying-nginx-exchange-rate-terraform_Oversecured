@@ -6,7 +6,7 @@ Clone repository
 ----------------
 
 ```
-$ git clone https://github.com/<username>/test_task_for_oversecured.git
+$ git clone https://github.com/Lvchnk88/test_task_for_oversecured.git
 $ cd test_task_for_oversecured
 ```
 
@@ -14,6 +14,11 @@ Terraform Deployment
 --------------------
 
 1. Run Terraform commands to deploy the infrastructure:
+
+```
+export AWS_ACCESS_KEY_ID= < Your aws access key >
+export AWS_SECRET_ACCESS_KEY= < Your aws secret access key >
+```
 
 ```
 $ cd terraform
@@ -45,5 +50,7 @@ If you want to register a domain name for HTTPS, follow these additional steps:
 
 License
 -------
+
+Terraform v1.5.0
 
 This project is licensed under the [MIT License](LICENSE).
