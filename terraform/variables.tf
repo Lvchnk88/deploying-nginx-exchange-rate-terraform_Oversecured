@@ -38,3 +38,19 @@ variable "hosted_zone" {
 variable "allow_ports" {
   default = ["80", "443", "22"]
 }
+
+# SSL on/off
+variable "userdata_vars" {
+  default = {
+    enable_nginx_ssl  = false
+    domain_name       = null
+  }
+  type = object({
+    enable_nginx_ssl  = bool
+    domain_name       = string
+  })
+}
+
+output "name" {
+  value = templatefile("userdata.tpl", var.userdata_vars)
+}
