@@ -65,7 +65,7 @@ ec2_global_ips = [
   ],
 ]
 login = "New_User_Name"
-password = "New_User_Name_Password"
+password = "New_User_Password"
 ``` 
 
 
