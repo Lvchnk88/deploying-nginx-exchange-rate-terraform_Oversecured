@@ -1,13 +1,12 @@
 Test Task for Oversecured
 -------------------------
 
-
 Clone repository
 ----------------
 
 ```
-$ git clone https://github.com/Lvchnk88/test_task_for_oversecured.git
-$ cd test_task_for_oversecured
+git clone https://github.com/Lvchnk88/test_task_for_oversecured.git
+cd test_task_for_oversecured
 ```
 
 Terraform Deployment
@@ -50,10 +49,10 @@ variable "userdata_vars" {
 5. Run Terraform commands to deploy the infrastructure:
 
 ```
-$ cd terraform
-$ terrafirm init
-$ terraform plan
-$ terraform apply
+cd terraform
+terrafirm init
+terraform plan
+terraform apply
 ```
 
 6. After the deployment is complete, you will see the output with the IP address, login, and password:
@@ -66,9 +65,7 @@ ec2_global_ips = [
 ]
 login = "New_User_Name"
 password = "New_User_Password"
-``` 
-
-
+```
 
 License
 -------
@@ -76,3 +73,34 @@ License
 Terraform v1.5.0
 
 This project is licensed under the [MIT License](LICENSE).
+
+
+TEST DESCRIPTION
+----------------
+Привіт! Завдання важке, але хто казав, шо буде легко?
+ :) 
+
+```
+Створити акаунт на AWS
+Створити двох юзерів на AWS:
+Перший - ваш, через якого ви будете працювати
+Другий - той, який ви дасте на перевірку (з мінімальними правами, але достатніми для перевірки тестового)
+Створити EC2 інстанс (використовувати безкоштовний розмір інстанс) + відкрити до нього доступ через інтернет
+На інстансі підняти NGINX, який через 80 порт віддає просту HTML сторінку
+```
+
+Додаткові вимоги - програма Бонус+ :) 
+```
+Змінити дефолтний шлях до вашої HTML-сторінки, наприклад http://*.compute.amazonaws.com/page
+Обмежити доступ до інстансу тільки з певного пулу протоколів (http, https, ssh)
+Обмежити доступ до інстансу тільки з певного IP і дати права нашому користувачеві додати свою IP адресу в security group самостійно.
+На сторінці виводити інформацію з будь-якого публічного API (погода, курс валют, ...) з якимось періодом оновлення даних.
+```
+
+Який вигляд має результат:
+```
+Посилання на свою HTML-сторінку
+Креденшели від юзера, через якого можна зайти і подивитися всередину акаунта (EC2 консоль)
+```
+ Лист з результатами чекаємо на пошті до 25 червня включно на пошту ikhorolskiy@oversecured.com
+
